@@ -3,6 +3,7 @@ def cosmology_calculator(z, H0=69.6, WM=0.286, WV=0.714):
     http://www.astro.ucla.edu/~wright/CosmoCalc.html
     http://www.astro.ucla.edu/~wright/CC.python
     # symbols   # meaning
+    # z         # redshift
     # WR        # Omega(radiation)
     # WK        # Omega curvaturve = 1-Omega(total)
     # age       # age of Universe in units of 1/H0
