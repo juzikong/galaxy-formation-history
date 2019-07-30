@@ -4,6 +4,37 @@ import time
 import random
 import math
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.collections import LineCollection
+
+
+def multiline(xs, ys, c, ax=None, **kwargs):
+    """Plot lines with different colorings
+    Code copy from https://stackoverflow.com/a/50029441
+
+    Parameters
+    ----------
+    xs : iterable container of x coordinates
+    ys : iterable container of y coordinates
+    c : iterable container of numbers mapped to colormap
+    ax (optional): Axes to plot on.
+    kwargs (optional): passed to LineCollection
+
+    Notes:
+        len(xs) == len(ys) == len(c) is the number of line segments
+        len(xs[i]) == len(ys[i]) is the number of points for each line (indexed by i)
+
+    Returns
+    -------
+    lc : LineCollection instance.
+    """
+    ax = plt.gca() if ax is None else ax
+    segments = [np.column_stack([x, y]) for x, y in zip(xs, ys)]
+    lc = LineCollection(segments, **kwargs)
+    lc.set_array(np.asarray(c))
+    ax.add_collection(lc)
+    ax.autoscale()
+    return lc
 
 
 def generate_a_galaxy(age_of_the_universe):
@@ -14,7 +45,7 @@ def generate_a_galaxy(age_of_the_universe):
     star_formation_start_time = random.random() * time_list[0]  # in [Gyr]
     maximum_formation_time = age_of_the_universe - star_formation_start_time
     star_formation_stop_time = star_formation_start_time + random.random() * maximum_formation_time  # in [Gyr]
-    log_sfr = random.random() * 10 - 5  # log_10(star formation rate [solar mass per year])
+    log_sfr = random.random() * 11 - 5  # log_10(star formation rate [solar mass per year])
     log_galaxy_final_mass = 9 + math.log((star_formation_stop_time - star_formation_start_time), 10) + log_sfr
     # Here does not consider that
     # the final dynamical mass should be smaller than the total stellar mass formed
@@ -112,31 +143,57 @@ def plot_all_galaxy_result():
 
     plot_galaxy_mass_list = []
     plot_galaxy_sft_list = []
+    color_list = []
     for a_galaxy in galaxies:
         plot_galaxy_mass_list.append(a_galaxy[3])
         plot_galaxy_sft_list.append(a_galaxy[4])
-
+        normalize_the_mean_age = (a_galaxy[0]+a_galaxy[1])/2/age_of_the_universe
+        # normalize_the_mean_age = a_galaxy[1]/age_of_the_universe
+        color_list.append(plt.cm.cool(normalize_the_mean_age))
     plt.rc('font', family='serif')
     plt.rc('xtick', labelsize='x-small')
     plt.rc('ytick', labelsize='x-small')
-    plt.figure(0, figsize=(6, 5))
-    plt.scatter(plot_galaxy_mass_list, plot_galaxy_sft_list, s=3)
+    fig = plt.figure(0, figsize=(6, 5))
+    plt.scatter(plot_galaxy_mass_list, plot_galaxy_sft_list, s=33, alpha=0.22, c=color_list)
+    age_ticks = [0, 2, 4, 6, 8, 10, 12, 14]
+    age_ticks_normalize = []
+    for ticks in age_ticks:
+        ticks_normalized = ticks / 14
+        age_ticks_normalize.append(ticks_normalized)
+    lc = multiline([8, 8], [0, 0], [0, 1], cmap='cool')
+    # axcb = fig.colorbar(lc, ticks=age_ticks_normalize)
+    axcb = fig.colorbar(lc)
+    axcb.set_label('mean stellar age [Gyr]')
+    axcb.ax.set_yticklabels(['0', '2', '4', '6', '8', '10', '12', '14'])
     plt.xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
-    plt.ylabel(r't$_{\rm sf}$')
+    plt.ylabel(r't$_{\rm sf}$ [Gyr]')
 
     plt.rc('font', family='serif')
     plt.rc('xtick', labelsize='x-small')
     plt.rc('ytick', labelsize='x-small')
-    plt.figure(1, figsize=(6, 5))
-    plt.xlabel(r'Time')
-    plt.ylabel(r'SFR')
+    fig = plt.figure(1, figsize=(6, 5))
+    plt.xlabel(r'Time [Gyr]')
+    plt.ylabel(r'log$_{10}$($SFR$ [M$_\odot$/yr])')
     for a_galaxy in galaxies:
         star_formation_start_time = a_galaxy[0]
         star_formation_stop_time = a_galaxy[1]
         log_sfr = a_galaxy[2]
+        galaxy_mass__ = a_galaxy[3]
+        normalize_the_mass = (galaxy_mass__ - 8) / 5
+        color = plt.cm.hsv(normalize_the_mass)
         x = [star_formation_start_time, star_formation_stop_time, star_formation_stop_time, star_formation_start_time]
         y = [log_sfr, log_sfr, -5, -5]
-        plt.fill(x, y, 'b', alpha=0.0333, edgecolor='r')
+        plt.fill(x, y, facecolor=color, alpha=0.0555, edgecolor='k')
+    mass_ticks = [8, 9, 10, 11, 12, 13]
+    mass_ticks_normalize = []
+    for ticks in mass_ticks:
+        ticks_normalized = (ticks - 8) / 5
+        mass_ticks_normalize.append(ticks_normalized)
+    lc = multiline([0, 0], [0, 0], [0, 1], cmap='hsv')
+    # axcb = fig.colorbar(lc, ticks=mass_ticks_normalize)
+    axcb = fig.colorbar(lc)
+    axcb.set_label(r'log$_{10}$($M_{dyn}$ [M$_\odot$])')
+    axcb.ax.set_yticklabels(['8', '9', '10', '11', '12', '13'])
     plt.tight_layout()
     plt.show()
     return
@@ -262,7 +319,8 @@ if __name__ == '__main__':
     print('Initial error:', error)
 
     # # generate more galaxies but each one much improve the fit:
-    i = 11111
+    # i = 111 111  # cost 1 min
+    i = 1111
     while i > 0:
         galaxy_number_a_new = []
         galaxy_number_q_new = []
