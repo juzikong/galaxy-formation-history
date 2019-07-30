@@ -1,7 +1,11 @@
-def function_data(z, logMstar):
+redshift_list = [0.2, 0.5, 1, 1.5, 2, 2.5, 3, 4]
+logMstar_list = [8, 9, 10, 11, 11.5, 13]
+
+def function_data(z_0to6, logMstar_0to4):
     '''
         This function returns the number (and mass) of galaxies (stellar mass) within given mass and redshift range
         redshift range  z = 0.2, 0.5, 1, 1.5, 2, 2.5, 3, 4
+        for 7 lines the galaxy have 0.2 =< z < 0.5 ...
         mass range      logMstar = 8, 9, 10, 11, 11.5, 13
         Data from Muzzin et al. (2013) their Table. 2
     '''
@@ -51,6 +55,6 @@ def function_data(z, logMstar):
         The units are:  eta [Mpc^-3]    rho [solar mass Mpc^-3]
         a, q, and f meaning: all, quiescent, and star-forming galaxies are taken into account
     '''
-    output = [log_eta_a[z][logMstar], log_eta_q[z][logMstar], log_eta_f[z][logMstar],
-              log_rho_a[z][logMstar], log_rho_q[z][logMstar], log_rho_f[z][logMstar]]
+    output = [log_eta_a[z_0to6][logMstar_0to4], log_eta_q[z_0to6][logMstar_0to4], log_eta_f[z_0to6][logMstar_0to4],
+              log_rho_a[z_0to6][logMstar_0to4], log_rho_q[z_0to6][logMstar_0to4], log_rho_f[z_0to6][logMstar_0to4]]
     return output
