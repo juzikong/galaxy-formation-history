@@ -1,15 +1,23 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+
+
 def cosmology_calculator(z, H0=69.6, WM=0.286, WV=0.714):
     '''
     http://www.astro.ucla.edu/~wright/CosmoCalc.html
     http://www.astro.ucla.edu/~wright/CC.python
     # symbols   # meaning
+    # H0        # Hubble constant
+    # WM        # Omega_M
+    # WV        # Omega_vac
     # z         # redshift
     # WR        # Omega(radiation)
     # WK        # Omega curvaturve = 1-Omega(total)
     # age       # age of Universe in units of 1/H0
     # age_Gyr   # value of age in Gyr
     # zage      # age of Universe at redshift z in units of 1/H0
-    # zage_Gyr  # value of zage in Gyr
+    # zage_Gyr  # value of zage in Gyrs
     # a         # 1/(1+z), the scale factor of the Universe
     # az        # 1/(1+z(object))
     # Tyr       # coefficent for converting 1/H into Gyr
@@ -28,3 +36,23 @@ def cosmology_calculator(z, H0=69.6, WM=0.286, WV=0.714):
     zage = az * age / n
     zage_Gyr = (Tyr / H0) * zage
     return zage_Gyr
+
+
+H0 = 69.6
+WM = 0.286
+WV = 0.714
+print("Standard age of the universe:", cosmology_calculator(0, H0, WM, WV))
+
+# ### plot redshift--time relation ###
+# redshift_list = np.arange(0.003, 0.1, 0.001)
+# redshift_list = np.append(redshift_list, np.arange(0.1, 10, 0.01))
+# redshift_list = np.append(redshift_list, np.arange(10, 100, 0.1))
+# time_list = cosmology_calculator(redshift_list, H0, WM, WV)
+# plt.yscale("log")
+# plt.xlim(0, math.ceil(cosmology_calculator(0, H0, WM, WV)))
+# plt.ylim(0.001, 100)
+# plt.xlabel("time [Gyr]")
+# plt.ylabel("redshift")
+# plt.title("age of the universe: {} Gyr".format(round(cosmology_calculator(0), 2)))
+# plt.plot(time_list, redshift_list)
+# plt.show()
