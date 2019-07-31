@@ -55,12 +55,14 @@ def generate_a_galaxy(age_of_the_universe):
     log_sfr = random.random() * (2.3 + 5) - 2.3  # log_10(star formation rate [solar mass per year])
     maximum_formation_time = age_of_the_universe - star_formation_start_time
     star_formation_stop_time = star_formation_start_time + random.random() * maximum_formation_time  # in [Gyr]
+    if star_formation_stop_time > time_list[0]:
+        star_formation_stop_time = time_list[0]*1.001
     log_galaxy_final_mass = 9 + math.log((star_formation_stop_time - star_formation_start_time), 10) + log_sfr
     # Here does not consider that
     # the final dynamical mass should be smaller than the total stellar mass formed
     star_formation_timescale = star_formation_stop_time - star_formation_start_time
-    minimum_formation_time = minimum_sft(log_galaxy_final_mass)
-    # minimum_formation_time = 0
+    # minimum_formation_time = minimum_sft(log_galaxy_final_mass)
+    minimum_formation_time = 0
     if 8 < log_galaxy_final_mass < 13 and star_formation_timescale > minimum_formation_time:
         output = [star_formation_start_time, star_formation_stop_time, log_sfr,
                   log_galaxy_final_mass, star_formation_timescale]
@@ -124,17 +126,17 @@ def compare_with_observation(galaxy_number_a__, galaxy_number_q__, galaxy_number
     for ii in range(time_step_number):
         for jj in range(mass_range_number):
             error__ += abs(galaxy_number_a__[ii][jj]/total_galaxy_number_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[0]/total_galaxy_number_at_low_z_obs)
+                       data_Muzzin13.function_data(ii, jj)[0]/total_galaxy_number_at_low_z_obs)**2
             error__ += abs(galaxy_number_q__[ii][jj]/total_galaxy_number_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[1]/total_galaxy_number_at_low_z_obs)
+                       data_Muzzin13.function_data(ii, jj)[1]/total_galaxy_number_at_low_z_obs)**2
             error__ += abs(galaxy_number_f__[ii][jj]/total_galaxy_number_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[2]/total_galaxy_number_at_low_z_obs)
+                       data_Muzzin13.function_data(ii, jj)[2]/total_galaxy_number_at_low_z_obs)**2
             error__ += abs(galaxy_mass_a__[ii][jj]/total_galaxy_mass_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[3]/total_galaxy_mass_at_low_z_obs)
+                       data_Muzzin13.function_data(ii, jj)[3]/total_galaxy_mass_at_low_z_obs)**2
             error__ += abs(galaxy_mass_q__[ii][jj]/total_galaxy_mass_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[4]/total_galaxy_mass_at_low_z_obs)
+                       data_Muzzin13.function_data(ii, jj)[4]/total_galaxy_mass_at_low_z_obs)**2
             error__ += abs(galaxy_mass_f__[ii][jj]/total_galaxy_mass_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[5]/total_galaxy_mass_at_low_z_obs)
+                       data_Muzzin13.function_data(ii, jj)[5]/total_galaxy_mass_at_low_z_obs)**2
     return error__
 
 
@@ -185,22 +187,23 @@ def plot_all_galaxy_result():
     for a_galaxy in galaxies:
         plot_galaxy_mass = a_galaxy[3]
         plot_galaxy_sft = a_galaxy[4]
-        normalize_the_mean_age = 1 - (a_galaxy[0] + a_galaxy[1]) / 2 / age_of_the_universe
+        the_mean_age = age_of_the_universe - (a_galaxy[0] + a_galaxy[1]) / 2
+        normalize_the_mean_age = (the_mean_age - age_of_the_universe)/time_list[0] + 1
         # normalize_the_mean_age = a_galaxy[1]/age_of_the_universe
         color = plt.cm.rainbow(normalize_the_mean_age)
         normalize_the_mass = (plot_galaxy_mass - 8) / 5
         normalize_the_mass_2 = normalize_the_mass ** 1.3 / 3 + 0.33
-        plt.scatter(plot_galaxy_mass, plot_galaxy_sft, s=33, alpha=normalize_the_mass_2, c=color)
-    age_ticks = [0, 2, 4, 6, 8, 10, 12, 14]
+        plt.scatter(plot_galaxy_mass, plot_galaxy_sft, s=22, alpha=normalize_the_mass_2, c=color)
+    age_ticks = [2, 4, 6, 8, 10, 12, 14]
     age_ticks_normalize = []
     for ticks in age_ticks:
-        ticks_normalized = ticks / 14
+        ticks_normalized = (ticks - age_of_the_universe)/time_list[0] + 1
         age_ticks_normalize.append(ticks_normalized)
     lc = multiline([8, 8], [0, 0], [0, 1], cmap='rainbow')
     # axcb = fig.colorbar(lc, ticks=age_ticks_normalize)
     axcb = fig.colorbar(lc)
     axcb.set_label('mean stellar age [Gyr]')
-    axcb.ax.set_yticklabels(['0', '2', '4', '6', '8', '10', '12', '14'])
+    axcb.ax.set_yticklabels(['2', '4', '6', '8', '10', '12', '14'])
     plt.xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
     plt.ylabel(r't$_{\rm sf}$ [Gyr]')
 
@@ -256,8 +259,11 @@ def plot_all_galaxy_result():
     fig = plt.figure(2, figsize=(6, 5))
     plt.xlabel(r'mean stellar age [Gyr]')
     plt.ylabel(r't$_{\rm sf}$ [Gyr]')
+    nolt1 = age_of_the_universe - time_list[0]*1.001  # nolt1: nearest obs lookback time
     plt.plot([0, age_of_the_universe/2], [0, age_of_the_universe], lw=0.5)
     # the line with all star forming galaxy at the present day
+    plt.plot([nolt1, (age_of_the_universe-nolt1)/2], [0, (age_of_the_universe-3*nolt1)], lw=0.5)
+    # the line with all star forming galaxy at the nearest observation time
     plt.plot([age_of_the_universe/2, age_of_the_universe], [age_of_the_universe, 0], lw=0.5)
     # the line with all galaxies star forming star at the beginning of the time
     nolt = age_of_the_universe - time_list[0]  # nolt: nearest obs lookback time
@@ -296,12 +302,14 @@ def plot_all_galaxy_result():
     ax2 = fig.add_subplot(132)
     ax3 = fig.add_subplot(133)
     for time__ in range(time_step_number):
-        ax1.plot(mass_list, lines[0][time__])
-        ax1.plot(mass_list, lines_obs[0][time__], ls='dashed')
-        ax2.plot(mass_list, lines[1][time__])
-        ax2.plot(mass_list, lines_obs[1][time__], ls='dashed')
-        ax3.plot(mass_list, lines[2][time__])
-        ax3.plot(mass_list, lines_obs[2][time__], ls='dashed')
+        normalize_the_time = time__/6.1+0.05
+        color = plt.cm.rainbow(normalize_the_time)
+        ax1.plot(mass_list, lines[0][time__], c=color)
+        ax1.plot(mass_list, lines_obs[0][time__], ls='dashed', c=color)
+        ax2.plot(mass_list, lines[1][time__], c=color)
+        ax2.plot(mass_list, lines_obs[1][time__], ls='dashed', c=color)
+        ax3.plot(mass_list, lines[2][time__], c=color)
+        ax3.plot(mass_list, lines_obs[2][time__], ls='dashed', c=color)
 
     fig.subplots_adjust(wspace=0)  # make subplots close to each other
     plt.setp([a.get_yticklabels() for a in [fig.axes[1], fig.axes[2]]], visible=False)
@@ -443,7 +451,7 @@ if __name__ == '__main__':
 
     # # generate more galaxies but each one much improve the fit:
     # i = 111 111  # cost 1 min
-    i = 111111
+    i = 33333
     while i > 0:
     # while error > 3:
         galaxy_number_a_new = []
