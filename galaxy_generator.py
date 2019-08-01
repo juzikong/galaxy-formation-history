@@ -50,12 +50,12 @@ def minimum_sft_new(galaxy_mass__):
     return sft
 
 
-def generate_a_galaxy(age_of_the_universe):
+def generate_a_galaxy(age_of_the_universe, generated_galaxy_fraction):
     '''
     :param age_of_the_universe:
     :return: [star_formation_start_time, star_formation_stop_time, log_sfr]
     '''
-    star_formation_start_time = random.random() * time_list[0]  # in [Gyr]
+    star_formation_start_time = random.random() * time_list[0] * generated_galaxy_fraction**0.5  # in [Gyr]
     # 10^-2.3 is the lowest  possible SFR
     # 10^5    is the highest possible SFR
     log_sfr = random.random() * (2.3 + 5) - 2.3  # log_10(star formation rate [solar mass per year])
@@ -67,14 +67,14 @@ def generate_a_galaxy(age_of_the_universe):
     # Here does not consider that
     # the final dynamical mass should be smaller than the total stellar mass formed
     star_formation_timescale = star_formation_stop_time - star_formation_start_time
-    minimum_formation_time = minimum_sft(log_galaxy_final_mass)
-    # minimum_formation_time = 0
+    # minimum_formation_time = minimum_sft(log_galaxy_final_mass)
+    minimum_formation_time = 0.3
     if 8 < log_galaxy_final_mass < 13 and star_formation_timescale > minimum_formation_time:
         output = [star_formation_start_time, star_formation_stop_time, log_sfr,
                   log_galaxy_final_mass, star_formation_timescale]
         return output
     else:
-        return generate_a_galaxy(age_of_the_universe)
+        return generate_a_galaxy(age_of_the_universe, generated_galaxy_fraction)
 
 
 def data_prepare():
@@ -129,20 +129,33 @@ def compare_with_observation(galaxy_number_a__, galaxy_number_q__, galaxy_number
                                      galaxy_mass_a__, galaxy_mass_q__, galaxy_mass_f__,
                                      total_galaxy_number_at_low_z__, total_galaxy_mass_at_low_z__):
     error__ = 0
+    error_power = 1
     for ii in range(time_step_number):
         for jj in range(mass_range_number):
+            # if jj > 2 or ii > 4:
+            #     error_power = 1.5
+            # else:
+            #     error_power = 1
+            # error_power = redshift_list[ii] * logMstar_list[jj]
+            error_power = redshift_list[ii]**1
             error__ += abs(galaxy_number_a__[ii][jj]/total_galaxy_number_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[0]/total_galaxy_number_at_low_z_obs)**2
+                       data_Muzzin13.function_data(ii, jj)[0]/total_galaxy_number_at_low_z_obs)*error_power*\
+                       1/data_Muzzin13.function_data(ii, jj)[0]
             error__ += abs(galaxy_number_q__[ii][jj]/total_galaxy_number_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[1]/total_galaxy_number_at_low_z_obs)**2
+                       data_Muzzin13.function_data(ii, jj)[1]/total_galaxy_number_at_low_z_obs)*error_power*\
+                       1/data_Muzzin13.function_data(ii, jj)[1]
             error__ += abs(galaxy_number_f__[ii][jj]/total_galaxy_number_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[2]/total_galaxy_number_at_low_z_obs)**2
+                       data_Muzzin13.function_data(ii, jj)[2]/total_galaxy_number_at_low_z_obs)*error_power*\
+                       1/data_Muzzin13.function_data(ii, jj)[2]
             error__ += abs(galaxy_mass_a__[ii][jj]/total_galaxy_mass_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[3]/total_galaxy_mass_at_low_z_obs)**2
+                       data_Muzzin13.function_data(ii, jj)[3]/total_galaxy_mass_at_low_z_obs)*error_power*\
+                       1/data_Muzzin13.function_data(ii, jj)[0]
             error__ += abs(galaxy_mass_q__[ii][jj]/total_galaxy_mass_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[4]/total_galaxy_mass_at_low_z_obs)**2
+                       data_Muzzin13.function_data(ii, jj)[4]/total_galaxy_mass_at_low_z_obs)*error_power*\
+                       1/data_Muzzin13.function_data(ii, jj)[1]
             error__ += abs(galaxy_mass_f__[ii][jj]/total_galaxy_mass_at_low_z__ - \
-                       data_Muzzin13.function_data(ii, jj)[5]/total_galaxy_mass_at_low_z_obs)**2
+                       data_Muzzin13.function_data(ii, jj)[5]/total_galaxy_mass_at_low_z_obs)*error_power*\
+                       1/data_Muzzin13.function_data(ii, jj)[2]
     return error__
 
 
@@ -154,17 +167,17 @@ def plot_compare_with_observation(galaxy_number_a__, galaxy_number_q__, galaxy_n
     for ii in range(time_step_number):
         for jj in range(mass_range_number):
             if galaxy_number_a__[ii][jj] == 0:
-                lines[0][ii].append(-6.5)
+                lines[0][ii].append(-7)
             else:
                 lines[0][ii].append(math.log(galaxy_number_a__[ii][jj]/total_galaxy_number_at_low_z__*total_galaxy_number_at_low_z_obs, 10))
             lines_obs[0][ii].append(math.log(data_Muzzin13.function_data(ii, jj)[0], 10))
             if galaxy_number_q__[ii][jj] == 0:
-                lines[1][ii].append(-6.5)
+                lines[1][ii].append(-7)
             else:
                 lines[1][ii].append(math.log(galaxy_number_q__[ii][jj]/total_galaxy_number_at_low_z__*total_galaxy_number_at_low_z_obs, 10))
             lines_obs[1][ii].append(math.log(data_Muzzin13.function_data(ii, jj)[1], 10))
             if galaxy_number_f__[ii][jj] == 0:
-                lines[2][ii].append(-6.5)
+                lines[2][ii].append(-7)
             else:
                 lines[2][ii].append(math.log(galaxy_number_f__[ii][jj]/total_galaxy_number_at_low_z__*total_galaxy_number_at_low_z_obs, 10))
             lines_obs[2][ii].append(math.log(data_Muzzin13.function_data(ii, jj)[2], 10))
@@ -211,7 +224,7 @@ def plot_all_galaxy_result():
     axcb.set_label('mean stellar age [Gyr]')
     axcb.ax.set_yticklabels(['2', '4', '6', '8', '10', '12', '14'])
     plt.xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
-    plt.ylabel(r't$_{\rm sf}$ [Gyr]')
+    plt.ylabel(r'$t_{\rm sf}$ [Gyr]')
 
 
 
@@ -264,19 +277,26 @@ def plot_all_galaxy_result():
     plt.rc('ytick', labelsize='x-small')
     fig = plt.figure(2, figsize=(6, 5))
     plt.xlabel(r'mean stellar age [Gyr]')
-    plt.ylabel(r't$_{\rm sf}$ [Gyr]')
+    plt.ylabel(r'$t_{\rm sf}$ [Gyr]')
+
+    plt.plot([0, age_of_the_universe/2], [0, age_of_the_universe], lw=0.8, ls='dashed', c='k',
+             label='all galaxies end star formation at the same time')
+    # the line with all galaxies still forming stars at the present day
+
     nolt1 = age_of_the_universe - time_list[0]*1.001  # nolt1: nearest obs lookback time
-    plt.plot([0, age_of_the_universe/2], [0, age_of_the_universe], lw=0.5)
-    # the line with all star forming galaxy at the present day
-    plt.plot([nolt1, (age_of_the_universe-nolt1)/2], [0, (age_of_the_universe-3*nolt1)], lw=0.5)
-    # the line with all star forming galaxy at the nearest observation time
-    plt.plot([age_of_the_universe/2, age_of_the_universe], [age_of_the_universe, 0], lw=0.5)
-    # the line with all galaxies star forming star at the beginning of the time
+    plt.plot([nolt1, (age_of_the_universe+nolt1)/2], [0, age_of_the_universe-nolt1], lw=0.8, ls='dashed', c='k')
+    # the line with all galaxies still forming stars at the nearest observation time
+
+    plt.plot([age_of_the_universe/2, age_of_the_universe], [age_of_the_universe, 0], lw=0.8, c='k')
+    # the line with all galaxies start forming star at the beginning of the time
+
     nolt = age_of_the_universe - time_list[0]  # nolt: nearest obs lookback time
-    plt.plot([nolt/2, nolt], [nolt, 0], lw=0.5)
-    # the line with all galaxies start their star formation at the nearest observation time
+    plt.plot([nolt/2, nolt], [nolt, 0], lw=0.8, c='k', label='all galaxies start forming star at the same time')
+    # the line with all galaxies start forming star at the nearest observation time
+
     minimum_formation_time = minimum_sft(13)
-    plt.plot([0, age_of_the_universe], [minimum_formation_time, minimum_formation_time], lw=0.5)
+    plt.plot([0, age_of_the_universe], [minimum_formation_time, minimum_formation_time], lw=0.8, ls='dotted',
+             label=r'lowest possible $t_{sf}$')
     # the line with shortest possible sft
 
     for a_galaxy in galaxies:
@@ -297,6 +317,7 @@ def plot_all_galaxy_result():
     axcb = fig.colorbar(lc)
     axcb.set_label(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
     axcb.ax.set_yticklabels(['8', '9', '10', '11', '12', '13', '14'])
+    plt.legend(prop={'size': 7}, loc='best')
     plt.tight_layout()
 
     ##################
@@ -305,9 +326,9 @@ def plot_all_galaxy_result():
                                   total_galaxy_number_at_low_z_new)
     fig = plt.figure(3, figsize=(10, 4))
 
-    ax1 = fig.add_subplot(131)
-    ax2 = fig.add_subplot(132)
-    ax3 = fig.add_subplot(133)
+    ax1 = plt.subplot(131)
+    ax2 = plt.subplot(132, sharey=ax1)
+    ax3 = plt.subplot(133, sharey=ax1)
     for time__ in range(time_step_number):
         normalize_the_time = time__/6.1+0.05
         color = plt.cm.rainbow(normalize_the_time)
@@ -315,7 +336,7 @@ def plot_all_galaxy_result():
         ax1.plot(mass_list, lines_obs[0][time__], ls='dashed', c=color)
         ax2.plot(mass_list, lines[1][time__], c=color)
         ax2.plot(mass_list, lines_obs[1][time__], ls='dashed', c=color)
-        ax3.plot(mass_list, lines[2][time__], c=color)
+        ax3.plot(mass_list, lines[2][time__], c=color, label='Time={} Gyr'.format(round(time_list[time__], 1)))
         ax3.plot(mass_list, lines_obs[2][time__], ls='dashed', c=color)
 
     fig.subplots_adjust(wspace=0)  # make subplots close to each other
@@ -326,13 +347,15 @@ def plot_all_galaxy_result():
     ax3.set_xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
     ax1.set_ylabel(r'log$_{10}$($\Phi$ [# Mpc$^{-3}$])')
 
-    ax1.title.set_text('All')
-    ax2.title.set_text(r'Number of galaxies with mass smaller than 10$^{13}$ M$_\odot$ and larger than the given value'
+    # ax1.title.set_text('All')
+    ax1.set_title('All')
+    ax2.set_title(r'Number of galaxies with mass smaller than 10$^{13}$ M$_\odot$ and larger than the given value'
                        '\nQuiescent')
-    ax3.title.set_text('Star Forming')
+    ax3.set_title('Star Forming')
     ax1.plot([], [], c='k', label='Model')
     ax1.plot([], [], c='k', label='Observation', ls='dashed')
     ax1.legend(prop={'size': 7}, loc='lower left')
+    ax3.legend(prop={'size': 7}, loc='lower left')
 
     plt.show()
     return
@@ -423,7 +446,7 @@ if __name__ == '__main__':
     
     # generate 1 or 2 random galaxy and calculate initial error:
     while total_galaxy_number_at_low_z == 0:
-        new_galaxy = generate_a_galaxy(age_of_the_universe)
+        new_galaxy = generate_a_galaxy(age_of_the_universe, 0)
         galaxy_sfh = compute_galaxy_mass_at_each_time(new_galaxy)
         galaxies.append(new_galaxy)
         galaxies_sfh_for_all_galaxy.append(galaxy_sfh)
@@ -465,9 +488,11 @@ if __name__ == '__main__':
 
     # # generate more galaxies but each one much improve the fit:
     # i = 111 111  # cost 1 min
-    i = 3333
+    i_total = 11111
+    i = i_total
     while i > 0:
     # while error > 3:
+        generated_galaxy_fraction = 1 - i / i_total
         galaxy_number_a_new = []
         galaxy_number_q_new = []
         galaxy_number_f_new = []
@@ -483,7 +508,7 @@ if __name__ == '__main__':
             galaxy_mass_f_new.append(galaxy_mass_f[a_time].copy())
         total_galaxy_number_at_low_z_new = 0
         total_galaxy_mass_at_low_z_new = 0
-        new_galaxy = generate_a_galaxy(age_of_the_universe)
+        new_galaxy = generate_a_galaxy(age_of_the_universe, generated_galaxy_fraction)
         galaxy_sfh = compute_galaxy_mass_at_each_time(new_galaxy)
         for at_time_i in range(time_step_number):
             log_galaxy_mass = galaxy_sfh[at_time_i][0]
