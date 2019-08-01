@@ -44,6 +44,12 @@ def minimum_sft(galaxy_mass__):
     return sft
 
 
+def minimum_sft_new(galaxy_mass__):
+    '''Yan 2019b'''
+    sft = math.exp(8-0.7*galaxy_mass__)
+    return sft
+
+
 def generate_a_galaxy(age_of_the_universe):
     '''
     :param age_of_the_universe:
@@ -61,8 +67,8 @@ def generate_a_galaxy(age_of_the_universe):
     # Here does not consider that
     # the final dynamical mass should be smaller than the total stellar mass formed
     star_formation_timescale = star_formation_stop_time - star_formation_start_time
-    # minimum_formation_time = minimum_sft(log_galaxy_final_mass)
-    minimum_formation_time = 0
+    minimum_formation_time = minimum_sft(log_galaxy_final_mass)
+    # minimum_formation_time = 0
     if 8 < log_galaxy_final_mass < 13 and star_formation_timescale > minimum_formation_time:
         output = [star_formation_start_time, star_formation_stop_time, log_sfr,
                   log_galaxy_final_mass, star_formation_timescale]
@@ -293,6 +299,7 @@ def plot_all_galaxy_result():
     axcb.ax.set_yticklabels(['8', '9', '10', '11', '12', '13', '14'])
     plt.tight_layout()
 
+    ##################
     mass_list = [8.5, 9.5, 10.5, 11.25, 12]
     lines, lines_obs = plot_compare_with_observation(galaxy_number_a_new, galaxy_number_q_new, galaxy_number_f_new,
                                   total_galaxy_number_at_low_z_new)
@@ -304,7 +311,7 @@ def plot_all_galaxy_result():
     for time__ in range(time_step_number):
         normalize_the_time = time__/6.1+0.05
         color = plt.cm.rainbow(normalize_the_time)
-        ax1.plot(mass_list, lines[0][time__], c=color)
+        ax1.plot(mass_list, lines[0][time__], c=color, label='z={}'.format(redshift_list[time__]))
         ax1.plot(mass_list, lines_obs[0][time__], ls='dashed', c=color)
         ax2.plot(mass_list, lines[1][time__], c=color)
         ax2.plot(mass_list, lines_obs[1][time__], ls='dashed', c=color)
@@ -317,8 +324,15 @@ def plot_all_galaxy_result():
     ax1.set_xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
     ax2.set_xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
     ax3.set_xlabel(r'log$_{10}$(M$_{dyn}$ [M$_\odot$])')
-    ax1.set_ylabel(r'log$_{10}$($\Phi$ [#])')
+    ax1.set_ylabel(r'log$_{10}$($\Phi$ [# Mpc$^{-3}$])')
 
+    ax1.title.set_text('All')
+    ax2.title.set_text(r'Number of galaxies with mass smaller than 10$^{13}$ M$_\odot$ and larger than the given value'
+                       '\nQuiescent')
+    ax3.title.set_text('Star Forming')
+    ax1.plot([], [], c='k', label='Model')
+    ax1.plot([], [], c='k', label='Observation', ls='dashed')
+    ax1.legend(prop={'size': 7}, loc='lower left')
 
     plt.show()
     return
@@ -451,7 +465,7 @@ if __name__ == '__main__':
 
     # # generate more galaxies but each one much improve the fit:
     # i = 111 111  # cost 1 min
-    i = 33333
+    i = 3333
     while i > 0:
     # while error > 3:
         galaxy_number_a_new = []
