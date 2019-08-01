@@ -218,7 +218,7 @@ def plot_compare_with_observation(galaxy_number_a__, galaxy_number_q__, galaxy_n
     return lines, lines_obs
 
 
-def plot_all_galaxy_result():
+def plot_all_galaxy_result(normalization_parameter):
     # print("galaxies:", galaxies)
     # print("galaxies_sfh_for_all_galaxy:", galaxies_sfh_for_all_galaxy)
     # print("galaxy_info_at_each_time:", galaxy_info_at_each_time)
@@ -377,19 +377,23 @@ def plot_all_galaxy_result():
     while time_index > 0:
         for a_galaxy in galaxies:
             if a_galaxy[0] < Madau_time[time_index] < a_galaxy[1]:
-                Madau_SFR_at_different_time[time_index] += a_galaxy[2]
+                Madau_SFR_at_different_time[time_index] += 10**a_galaxy[2]*normalization_parameter
         (time_index) = (time_index - 1)
-    for a_time in range(len(Madau_SFR_at_different_time)):
-        if Madau_SFR_at_different_time[a_time] > 0:
-            Madau_SFR_at_different_time[a_time] = math.log(Madau_SFR_at_different_time[a_time], 10)
+    # print(Madau_SFR_at_different_time)
+    # for a_time in range(len(Madau_SFR_at_different_time)):
+    #     if Madau_SFR_at_different_time[a_time] > 0:
+    #         Madau_SFR_at_different_time[a_time] = math.log(Madau_SFR_at_different_time[a_time], 10)
 
     plt.rc('font', family='serif')
     plt.rc('xtick', labelsize='x-small')
     plt.rc('ytick', labelsize='x-small')
-    plt.figure(3, figsize=(6, 5))
+    fig = plt.figure(3, figsize=(6, 5))
     plt.xlabel(r'redshift')
     plt.ylabel(r'log$_{10}$($SFR$ [M$_\odot$/yr])')
+    plt.title('Madau plot')
     plt.loglog(Madau_redshift, Madau_SFR_at_different_time)
+    plt.xticks([1, 2, 3, 4, 5, 6, 7, 8], ['1', '2', '3', '4', '5', '6', '7', '8'])
+    plt.yticks([10**-1, 10**-2, 10**-3], ['-1', '-2', '-3'])
     plt.tight_layout()
     if save_figure == True:
         plt.savefig('Madau.pdf', dpi=250)
@@ -407,11 +411,11 @@ def plot_all_galaxy_result():
         normalize_the_time = time__/6.1+0.05
         color = plt.cm.rainbow(normalize_the_time)
         ax1.plot(mass_list, lines[0][time__], c=color, label='z={}'.format(redshift_list[time__]))
-        ax1.plot(mass_list, lines_obs[0][time__], ls='dashed', c=color, alpha=0.11)
+        ax1.plot(mass_list, lines_obs[0][time__], ls='dashed', c=color, alpha=0.33)
         ax2.plot(mass_list, lines[1][time__], c=color)
-        ax2.plot(mass_list, lines_obs[1][time__], ls='dashed', c=color, alpha=0.11)
+        ax2.plot(mass_list, lines_obs[1][time__], ls='dashed', c=color, alpha=0.33)
         ax3.plot(mass_list, lines[2][time__], c=color, label='Time={} Gyr'.format(round(time_list[time__], 1)))
-        ax3.plot(mass_list, lines_obs[2][time__], ls='dashed', c=color, alpha=0.11)
+        ax3.plot(mass_list, lines_obs[2][time__], ls='dashed', c=color, alpha=0.33)
         # select only galaxy obsvations that is used for fitting
         for mass__ in range(mass_range_number):
             if time__ > mass__ + 2:  # select only massive galaxy obsvations at high redshift
@@ -433,10 +437,11 @@ def plot_all_galaxy_result():
     # ax1.title.set_text('All')
     ax1.set_title('All')
     ax2.set_title(r'Number of galaxies with mass smaller than 10$^{13}$ M$_\odot$ and larger than the given value'
-                       '\nQuiescent')
+                  '\nQuiescent')
     ax3.set_title('Star Forming')
     ax1.plot([], [], c='k', label='Model')
     ax1.plot([], [], c='k', label='Observation', ls='dashed')
+    ax1.plot([], [], c='0.66', label='Obs. not used for fitting', ls='dashed')
     ax1.legend(prop={'size': 7}, loc='lower left')
     ax3.legend(prop={'size': 7}, loc='lower left')
     if save_figure == True:
@@ -487,7 +492,7 @@ if __name__ == '__main__':
     # Thus this simulation result is biased towards lower galaxy mass.
     # Nevertheless, the influence of modifying the cosmology here seems not significant.
     age_of_the_universe = redshift_to_time.cosmology_calculator(0, H0, WM, WV)
-    print("Modeled age of the universe:", age_of_the_universe)
+    print("Applied age of the universe:", age_of_the_universe)
     data_prepare()
     time_step_number = len(time_list)
     mass_range_number = len(logMstar_list)-1
@@ -575,11 +580,11 @@ if __name__ == '__main__':
     # i = 111 111  # cost 1 min
     # i_total must be larger than 11111
     # Note that at least 10^6 galaxy need to be generated in order to have some massive galaxies in the sample
-    i_total = 10000000
-    i_total = 111111
-    save_figure = False
+    i_total = 20000000
+    # i_total = 1111
     save_figure = True
-    the_number_of_galaxies_being_plotted = min(i_total/10, 2000)
+    # save_figure = False
+    the_number_of_galaxies_being_plotted = min(i_total/20, 2000)
     i = i_total
     while i > 0:
     # while error > 3:
@@ -643,4 +648,4 @@ if __name__ == '__main__':
     end = time.time()
     print("\nSimulation time:", end - start)
 
-    plot_all_galaxy_result()
+    plot_all_galaxy_result(total_galaxy_mass_at_low_z_obs/total_galaxy_mass_at_low_z)
