@@ -141,7 +141,7 @@ def compare_with_observation(galaxy_number_a__, galaxy_number_q__, galaxy_number
     :return:
     '''
     error__ = 0
-    error_power = 2
+    error_power = 1
     for ii in range(time_step_number):
         for jj in range(mass_range_number):
             if not ii > jj + 2:  # Note: At high redshift, use only the observations of massive galaxies
@@ -268,6 +268,40 @@ def plot_all_galaxy_result(normalization_parameter):
     if save_figure == True:
         plt.savefig('downsizing.pdf', dpi=250)
 
+    ########## plot SFR--SFT relation ##########
+
+    plt.rc('font', family='serif')
+    plt.rc('xtick', labelsize='x-small')
+    plt.rc('ytick', labelsize='x-small')
+    fig = plt.figure(10, figsize=(6, 5))
+    gap = int(len(galaxies)/the_number_of_galaxies_being_plotted)
+    for index__ in range(gap, len(galaxies)+1, gap):
+        a_galaxy = galaxies[index__]
+        plot_galaxy_sfr = a_galaxy[2]
+        plot_galaxy_mass = a_galaxy[3]
+        plot_galaxy_sft = a_galaxy[4]
+        the_mean_age = age_of_the_universe - (a_galaxy[0] + a_galaxy[1]) / 2
+        normalize_the_mean_age = (the_mean_age - age_of_the_universe)/time_list[0] + 1
+        # normalize_the_mean_age = a_galaxy[1]/age_of_the_universe
+        color = plt.cm.rainbow(normalize_the_mean_age)
+        normalize_the_mass = (plot_galaxy_mass - 8) / 5
+        normalize_the_mass_2 = normalize_the_mass ** 1.3 / 3 + 0.33
+        plt.scatter(plot_galaxy_sfr, plot_galaxy_sft, s=22, alpha=normalize_the_mass_2, c=color)
+    age_ticks = [2, 4, 6, 8, 10, 12, 14]
+    age_ticks_normalize = []
+    for ticks in age_ticks:
+        ticks_normalized = (ticks - age_of_the_universe)/time_list[0] + 1
+        age_ticks_normalize.append(ticks_normalized)
+    lc = multiline([2, 2], [0, 0], [0, 1], cmap='rainbow')
+    axcb = fig.colorbar(lc)
+    axcb.set_label('mean stellar age [Gyr]')
+    axcb.ax.set_yticklabels(['2', '4', '6', '8', '10', '12', '14'])
+    plt.xlabel(r'$SFR$')
+    plt.ylabel(r'$t_{\rm sf}$ [Gyr]')
+    plt.tight_layout()
+    if save_figure == True:
+        plt.savefig('SFR_SFT.pdf', dpi=250)
+
     ########## plot SFH ##########
 
     plt.rc('font', family='serif')
@@ -367,7 +401,7 @@ def plot_all_galaxy_result(normalization_parameter):
 
     ########## Madau plot ###########
 
-    Madau_redshift = np.arange(0.5, 8, 0.2)
+    Madau_redshift = np.arange(0.3, 8, 0.2)
     Madau_time = []
     Madau_SFR_at_different_time = []
     for a_redshift in Madau_redshift:
@@ -580,11 +614,11 @@ if __name__ == '__main__':
     # i = 111 111  # cost 1 min
     # i_total must be larger than 11111
     # Note that at least 10^6 galaxy need to be generated in order to have some massive galaxies in the sample
-    i_total = 20000000
-    # i_total = 1111
-    save_figure = True
-    # save_figure = False
-    the_number_of_galaxies_being_plotted = min(i_total/20, 2000)
+    i_total = 50000000
+    i_total = 111111
+    # save_figure = True
+    save_figure = False
+    the_number_of_galaxies_being_plotted = min(i_total/20, 10000)
     i = i_total
     while i > 0:
     # while error > 3:

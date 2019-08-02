@@ -9,6 +9,7 @@ def function_data(z_0to6, logMstar_0to4):
         mass range      logMstar = 8, 9, 10, 11, 11.5, 13
         Data from Muzzin et al. (2013) their Table. 2
         https://ui.adsabs.harvard.edu/abs/2013ApJ...777...18M/abstract
+        Note that at higher redshift the count are biased towards massive galaxies
     '''
     log_eta_a = [[-1.49, -1.89, -2.35, -3.25, -4.52],
                  [-1.69, -2.00, -2.45, -3.49, -4.88],
